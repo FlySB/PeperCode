@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def createVolatilityMat():
     StockCodeList = []
     VolatilityMat = []
-    with open("/Users/gongxing/Desktop/data/shsz20.csv",encoding="gb2312") as csvfile:
+    with open("data/StockData/shsz20.csv",encoding="gb2312") as csvfile:
         reader = csv.reader(csvfile)
         # next(reader)
         i = 0
@@ -18,7 +18,7 @@ def createVolatilityMat():
             Id_StockCode = (i, StockCode)
             StockCodeList.append(Id_StockCode)
             i = i+1
-            with open("/Users/gongxing/Desktop/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile_1:
+            with open("data/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile_1:
                 VolatilityList = []
                 reader_1 = csv.reader(csvfile_1)
                 next(reader_1)
@@ -141,7 +141,7 @@ def createPointClusterlist(MatList, StockNum):
 # ClusterList:聚集系数列表
 def drawClusterlist(Clusterlist,TimeLength, WindowLength):
     date_list = []
-    with open("/Users/gongxing/Desktop/data/sh.600000.csv", encoding="gb2312") as csvfile:
+    with open("data/StockData/sh.600030.csv", encoding="gb2312") as csvfile:
         reader = csv.reader(csvfile)
         next(reader)
         for line in reader:
@@ -174,7 +174,7 @@ def UpDownMark(StockCodeList, PredictLength):
     for StockCode in StockCodeList:
         StockCode = StockCode[1]
         PriceList = []
-        with open("/Users/gongxing/Desktop/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
+        with open("data/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
             reader = csv.reader(csvfile)
             next(reader)
             for line in reader:
@@ -200,7 +200,7 @@ def DateProcess(DegreeList, ClusterList, BetweennessList, CollectionList ,CloseL
     for StockCode in StockCodeList:
         StockCode = StockCode[1]
         list = []
-        with open("/Users/gongxing/Desktop/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
+        with open("/data/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
             reader = csv.reader(csvfile)
             next(reader)
             for line in reader:
@@ -232,7 +232,7 @@ def DateProcess(DegreeList, ClusterList, BetweennessList, CollectionList ,CloseL
             MAT[i][j].append(MarksMat[i][j+WindowLength-1])
 
     for i in range(len(StockCodeList)):
-        with open("/Users/gongxing/Desktop/ProcessData/without/7data5/" + StockCodeList[i][1] + ".csv", 'w') as f:
+        with open("data/ProcessData/7data5/" + StockCodeList[i][1] + ".csv", 'w') as f:
             writer = csv.writer(f)
             # 将列表的每条数据依次写入csv文件， 并以逗号分隔
             # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
@@ -246,7 +246,7 @@ def DateProcess2(MarksMat, StockCodeList, WindowLength):
     for StockCode in StockCodeList:
         StockCode = StockCode[1]
         list = []
-        with open("/Users/gongxing/Desktop/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
+        with open("data/StockData/" + StockCode + ".csv", encoding="gb2312") as csvfile:
             reader = csv.reader(csvfile)
             next(reader)
             for line in reader:
@@ -268,7 +268,7 @@ def DateProcess2(MarksMat, StockCodeList, WindowLength):
             MAT[i][j].append(MarksMat[i][j+WindowLength-1])
 
     for i in range(len(StockCodeList)):
-        with open("/Users/gongxing/Desktop/ProcessData/without/7data/" + StockCodeList[i][1] + ".csv", 'w') as f:
+        with open("data/ProcessData/7data5/" + StockCodeList[i][1] + ".csv", 'w') as f:
             writer = csv.writer(f)
             # 将列表的每条数据依次写入csv文件， 并以逗号分隔
             # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
@@ -276,18 +276,11 @@ def DateProcess2(MarksMat, StockCodeList, WindowLength):
 
     return MAT
 
-
-
-windowlength = 7
-predictlength = 10
-
+# 2431 243 2011.1.4  730 2013.1.4 1213 2015.1.5 1700 2017.1.3 2188 2019.1.2
 VolatilityMat,StockCodeList = createVolatilityMat()
-print(StockCodeList)
-
-MAT_list = createWindowMatList(VolatilityMat, len(VolatilityMat[0]), windowlength)
-
-MarksMat = UpDownMark(StockCodeList,predictlength)
-MAT = DateProcess2(MarksMat, StockCodeList, windowlength)
+windowlength = [7,14,28,56]
+MAT_list = createWindowMatList(VolatilityMat,2431,56)
+ilist = [243,730,1213,1700,2188]
 
 
 

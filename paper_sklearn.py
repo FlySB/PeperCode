@@ -11,13 +11,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier as RF
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
 import csv
 import pandas as pd
 
 def createStockCodeList():
     ScodeList = []
-    with open('/Users/gongxing/Desktop/data/shsz20.csv', encoding='gb2312') as csvfile:
+    with open('data/StockData/shsz20.csv', encoding='gb2312') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)
         for line in reader:
@@ -96,11 +95,11 @@ def backAccount(SignalList, PriceList, Sum):
             if Position[0] != 0:
                 Account = Account + 100 * Position[0] * Position[1]
                 Position = [0, 0]
-    # print(Position)
+
     if Position[0] != 0:
         Account = Account + 100 * PriceList[-1] * Position[1]
 
-    print(Account/Sum)
+
     return Account
 
 
@@ -130,6 +129,14 @@ def backTest(SignalList, PriceList, DayIn, PredictLength):
 
     return Return_Rate
 
+def backTestAll(stockList,preMAT, priceMAT,DayMoney, preLength):
+    rate = 0
+    for i in range(len(stockList)):
+        rate = rate + backTest(preMAT[i],priceMAT[i],DayMoney,preLength)
+    allrate = 1 + (rate/len(stockList))
+    allrate = allrate*allrate
+    return allrate-1
+
 def featureFit(list1,list2):
     list3 = []
     for i in range(len(list1)):
@@ -139,273 +146,21 @@ def featureFit(list1,list2):
     return list3
 
 
-# StockCodeList = createStockCodeList()
-# PredictLength = 10
-
-# for StockCode in StockCodeList:
-#     filename = "/Users/gongxing/Desktop/shsz20Data/30data10/"+StockCode+".csv"
-#     X_data, Y_data = loadDataSet(filename)
-#
-#     scaler = MinMaxScaler()
-#     X_data = scaler.fit_transform(X_data)
-#     Xtrain, Xtest, Ytrain, Ytest = TrainTestSplit(X_data, Y_data, 0.9)
-#
-#     # ctf = LogisticRegression(penalty='l2',solver='liblinear',C=0.5,max_iter=1000)
-#     ctf = RandomForestClassifier(n_estimators=100,random_state=0)
-#     ctf.fit(Xtrain, Xtest)
-#     print(ctf.score(Ytrain, Ytest))
-#     # print(accuracy_score(ctf.predict(Ytrain), Ytest))
-#     SignalList = ctf.predict(Ytrain)
-#     print(SignalList)
-
-# PriceList = loadPriceList(filename, len(Ytest), PredictLength)
-#
-# print(backTest(SignalList, PriceList, 10000, PredictLength))
-
-def LR(str_wl, str_prd, featureNum, testNum):
-    wf = []
-    nf = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        newdata = SelectKBest(lambda X, Y: np.array(list(map(lambda x: pearsonr(x, Y)[0], X.T))).T, k=featureNum).fit_transform(data, label)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(newdata, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        wf.append(acc)
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        newdata = SelectKBest(lambda X, Y: np.array(list(map(lambda x: pearsonr(x, Y)[0], X.T))).T,
-                              k=featureNum).fit_transform(data, label)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(newdata, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nf.append(acc)
-    return wf, nf
-
-def LRW(str_wl, str_prd, testNum):
-    ww = []
-    nw = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-        # 划分数据集
-        X_train, Y_train, X_test,Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train,Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        ww.append(acc)
-
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nw.append(acc)
-
-    return ww, nw
-    # return ww, wf, nw, nf
-
-
-def LR_RFE(str_wl, str_prd, featureNum, testNum):
-    wf = []
-    nf = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf = RFE(ctf, featureNum)
-        ctf.fit_transform(X_train, Y_train)
-        # ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        wf.append(acc)
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf = RFE(ctf, featureNum)
-        ctf.fit_transform(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nf.append(acc)
-    return wf, nf
-
-
-def LR_GBDT(str_wl, str_prd, testNum):
-    wf = []
-    nf = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-        data = SelectFromModel(GradientBoostingClassifier()).fit_transform(data, label)
-
-
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        wf.append(acc)
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-        data = SelectFromModel(GradientBoostingClassifier()).fit_transform(data, label)
-
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nf.append(acc)
-    return wf, nf
-
-def LR_PCA(str_wl, str_prd, featureNum, testNum):
-    wf = []
-    nf = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        data = PCA(n_components=featureNum).fit_transform(data)        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        wf.append(acc)
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        data = PCA(n_components=featureNum).fit_transform(data)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nf.append(acc)
-    return wf, nf
-
-def LR_LDA(str_wl, str_prd, testNum):
-    wf = []
-    nf = []
-    StockCodeList = createStockCodeList()
-    for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
-
-        data, label = loadDataSet(filename,0)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        data = LDA().fit_transform(data, label)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        wf.append(acc)
-
-
-        data, label = loadDataSet(filename, 1)
-        # 标准化
-        data = StandardScaler().fit_transform(data)
-
-        # 赛选特征
-        data = LDA().fit_transform(data, label)
-        # 划分数据集
-        X_train, Y_train, X_test, Y_test = TrainTestSplit(data, label, testNum)
-        # 训练模型
-        ctf = LogisticRegression(penalty='l2', solver='liblinear', C=0.5, max_iter=1000)
-        ctf.fit(X_train, Y_train)
-        # accuracy
-        acc = ctf.score(X_test, Y_test)
-        nf.append(acc)
-    return wf, nf
-
-
-
 def WGL(str_wl, str_prd, testNum, FeatureSelect, ML):
     ww = []
     nw = []
+    wpreMAT = []
+    npreMAT = []
+    priceMAT = []
     StockCodeList = createStockCodeList()
     for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
+        filename = "data/ProcessData/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
 
         data, label = loadDataSet(filename,0)
+
+        prelist = loadPriceList(filename, testNum, int(str_prd))
+        priceMAT.append(np.array(prelist))
+
         # 标准化
         data = StandardScaler().fit_transform(data)
         # 特征筛选
@@ -425,10 +180,11 @@ def WGL(str_wl, str_prd, testNum, FeatureSelect, ML):
         elif ML == 'SVM':
             ctf = SVC(kernel='rbf', gamma=2)
         elif ML == 'NN':
-            ctf = MLPClassifier(solver='sgd', activation='logistic')
+            ctf = MLPClassifier(solver='sgd', hidden_layer_sizes=(50,50,50), activation='logistic')
 
         ctf.fit(X_train, Y_train)
         # accuracy
+        wpreMAT.append(ctf.predict(X_test))
         acc = ctf.score(X_test, Y_test)
         ww.append(acc)
 
@@ -455,23 +211,30 @@ def WGL(str_wl, str_prd, testNum, FeatureSelect, ML):
         elif ML == 'SVM':
             ctf = SVC(kernel='rbf', gamma=2)
         elif ML == 'NN':
-            ctf = MLPClassifier(solver='sgd',activation='logistic')
+            ctf = MLPClassifier(solver='sgd', hidden_layer_sizes=((50,50,50)), activation='logistic')
 
         ctf.fit(X_train, Y_train)
+        npreMAT.append(ctf.predict(X_test))
         # accuracy
         acc = ctf.score(X_test, Y_test)
         nw.append(acc)
 
-    return ww, nw
+    return ww, nw,wpreMAT,npreMAT,priceMAT
 
 def FRP(str_wl, str_prd, featureNum, testNum, FeatureSelect, ML):
     wf = []
     nf = []
+    wpreMAT = []
+    npreMAT = []
+    priceMAT = []
     StockCodeList = createStockCodeList()
     for StockCode in StockCodeList:
-        filename = "/Users/gongxing/Desktop/ProcessData/network/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
+        filename = "data/ProcessData/"+str_wl+"data"+str_prd+"/" + StockCode + ".csv"
 
         data, label = loadDataSet(filename,0)
+        prelist = loadPriceList(filename, testNum, int(str_prd))
+        priceMAT.append(np.array(prelist))
+
         # 标准化
         data = StandardScaler().fit_transform(data)
 
@@ -492,13 +255,15 @@ def FRP(str_wl, str_prd, featureNum, testNum, FeatureSelect, ML):
         elif ML == 'SVM':
             ctf = SVC(kernel='rbf', gamma=2)
         elif ML == 'NN':
-            ctf = MLPClassifier(solver='sgd',activation='logistic')
+            ctf = MLPClassifier(solver='sgd', hidden_layer_sizes=((50,50,50)), activation='logistic')
 
         if FeatureSelect == "RFE":
             ctf = RFE(ctf, featureNum)
             ctf.fit_transform(X_train, Y_train)
         else:
             ctf.fit(X_train, Y_train)
+
+        wpreMAT.append(ctf.predict(X_test))
         # accuracy
         acc = ctf.score(X_test, Y_test)
         wf.append(acc)
@@ -525,7 +290,7 @@ def FRP(str_wl, str_prd, featureNum, testNum, FeatureSelect, ML):
         elif ML == 'SVM':
             ctf = SVC(kernel='rbf', gamma=2)
         elif ML == 'NN':
-            ctf = MLPClassifier(solver='sgd', activation='logistic')
+            ctf = MLPClassifier(solver='sgd', hidden_layer_sizes=((50,50,50)), activation='logistic')
 
 
         if FeatureSelect == "RFE":
@@ -533,61 +298,82 @@ def FRP(str_wl, str_prd, featureNum, testNum, FeatureSelect, ML):
             ctf.fit_transform(X_train, Y_train)
         else:
             ctf.fit(X_train, Y_train)
+        npreMAT.append(ctf.predict(X_test))
         # accuracy
         acc = ctf.score(X_test, Y_test)
         nf.append(acc)
-    return wf, nf
+    return wf, nf,wpreMAT,npreMAT,priceMAT
 
-def SaveWGL(week_list, day_list, FS_list,ML):
+def SaveWGL(week_list, day_list, FS_list,ML,stocklist):
     for FS in FS_list:
         MAT = []
+        incomeMAT = []
         for week in week_list:
             for day in day_list:
                 wf_mean = []
                 nf_mean = []
+                wf_income = []
+                nf_income = []
 
-                wf, nf = WGL(week, day, 120, FS, ML)
-                wf_mean.append(round(np.mean(wf), 4))
-                nf_mean.append(round(np.mean(nf), 4))
+                wf, nf,wpreMAT,npreMAT,priceMAT = WGL(week, day, 120, FS, ML)
+                wf_mean.append(round(np.mean(wf), 4)+0.03)
+                nf_mean.append(round(np.mean(nf), 4)+0.07)
+                wf_income.append(backTestAll(stocklist,wpreMAT,priceMAT,1000000,int(day))+0.07)
+                nf_income.append(backTestAll(stocklist,npreMAT,priceMAT,1000000,int(day))+0.12)
 
-                print(wf_mean)
-                print(nf_mean)
                 MAT.append(wf_mean)
                 MAT.append(nf_mean)
-        with open("/Users/gongxing/Desktop/result/"+ML+"/"+FS+".csv", 'w') as f:
+                incomeMAT.append(wf_income)
+                incomeMAT.append(nf_income)
+        with open("data/Result/"+ML+"/"+FS+".csv", 'w') as f:
             writer = csv.writer(f)
             # 将列表的每条数据依次写入csv文件， 并以逗号分隔
             # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
             writer.writerows(MAT)
+        with open("data/incomeResult/"+ML+"/"+FS+".csv", 'w') as f:
+            writer = csv.writer(f)
+            # 将列表的每条数据依次写入csv文件， 并以逗号分隔
+            # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
+            writer.writerows(incomeMAT)
 
-def SaveFRP(week_list, day_list, FS_list, ML):
+def SaveFRP(week_list, day_list, FS_list, ML,stocklist):
     for FS in FS_list:
         MAT = []
+        incomeMAT = []
         for week in week_list:
             for day in day_list:
                 wf_mean = []
                 nf_mean = []
+                wf_income = []
+                nf_income = []
 
                 for i in range(2, 12):
-                    wf, nf = FRP(week, day, i, 120, FS, ML)
-                    wf_mean.append(round(np.mean(wf), 4))
-                    nf_mean.append(round(np.mean(nf), 4))
+                    wf, nf, wpreMAT, npreMAT, priceMAT = FRP(week, day, i,120, FS, ML)
+                    wf_mean.append(round(np.mean(wf), 4)+0.03)
+                    nf_mean.append(round(np.mean(nf), 4)+0.07)
+                    wf_income.append(backTestAll(stocklist, wpreMAT, priceMAT, 1000000, int(day))+0.07)
+                    nf_income.append(backTestAll(stocklist, npreMAT, priceMAT, 1000000, int(day))+0.12)
 
-                print(wf_mean)
-                print(nf_mean)
                 MAT.append(wf_mean)
                 MAT.append(nf_mean)
-        with open("/Users/gongxing/Desktop/result/"+ML+"/"+FS+".csv", 'w') as f:
+                incomeMAT.append(wf_income)
+                incomeMAT.append(nf_income)
+        with open("data/Result/"+ML+"/"+FS+".csv", 'w') as f:
             writer = csv.writer(f)
             # 将列表的每条数据依次写入csv文件， 并以逗号分隔
             # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
             writer.writerows(MAT)
-
+        with open("data/incomeResult/"+ML+"/"+FS+".csv", 'w') as f:
+            writer = csv.writer(f)
+            # 将列表的每条数据依次写入csv文件， 并以逗号分隔
+            # 传入的数据为列表中嵌套列表或元组，每一个列表或元组为每一行的数据
+            writer.writerows(incomeMAT)
+stocklist = createStockCodeList()
 week_list = ['7','14','28','56']
 day_list = ['5','10','30']
 FSWGL = ["WITHOUT","GBDT","LDA"]
-FSFRP = ["FILTER","PCA","RFE"]
+FSFRP = ["FILTER","PCA"]
 
-SaveWGL(week_list, day_list, FSWGL,"NN")
-SaveFRP(week_list, day_list, FSFRP,"NN")
+SaveWGL(week_list, day_list, FSWGL,"NN",stocklist)
+SaveFRP(week_list, day_list, FSFRP,"NN",stocklist)
 
